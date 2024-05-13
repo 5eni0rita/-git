@@ -1,0 +1,75 @@
+import numpy as np
+from tabulate import tabulate
+
+# Constants
+h = 6.626e-34  # Planck's constant (Joule second)
+c = 3.0e8  # Speed of light (m/s)
+B_HF = 6.332e9  # Rotational constant for HF (Hz)
+B_CSO = 5.0e9  # Rotational constant for CSO (Hz)
+v_HF = 5.0e13  # Vibrational frequency for HF (Hz)
+v_CSO = 4.5e13  # Vibrational frequency for CSO (Hz)
+
+def rotational_energy(level, B):
+    return level * (level + 1) * h * B / (8 * np.pi**2)
+
+def vibrational_energy(level, v):
+    return (level + 0.5) * h * v
+
+def energy_difference(E1, E2):
+    return abs(E2 - E1)
+
+# Simulation for rotational energy levels
+def simulate_rotational(molecule, levels):
+    table = []
+
+    if molecule == "HF":
+        B = B_HF
+    elif molecule == "CSO":
+        B = B_CSO
+    else:
+        print("Unknown molecule")
+        return
+
+    for level in range(1, levels + 1):
+        energy = rotational_energy(level, B)
+        next_energy = rotational_energy(level + 1, B)
+        diff = energy_difference(energy, next_energy)
+        selection_rule = "ΔJ = ±1"
+        table.append([level, "{:.3e}".format(energy), "{:.3e}".format(diff), selection_rule])
+
+    print(f"Rotational energy levels for {molecule}:")
+    print(tabulate(table, headers=["Level", "Energy (Joules)", "Energy Difference", "Selection Rule"], tablefmt="grid"))
+
+# Simulation for rotational energy levels in first three vibrational levels
+def simulate_vibrational(molecule, vibrational_levels, rotational_levels):
+    table = []
+
+    if molecule == "HF":
+        v = v_HF
+    elif molecule == "CSO":
+        v = v_CSO
+    else:
+        print("Unknown molecule")
+        return
+
+    for v_level in range(1, vibrational_levels + 1):
+        for r_level in range(1, rotational_levels + 1):
+            vibrational_energy_value = vibrational_energy(v_level, v)
+            rotational_energy_value = rotational_energy(r_level, B_HF if molecule == "HF" else B_CSO)
+            total_energy = vibrational_energy_value + rotational_energy_value
+
+            next_rotational_energy = rotational_energy(r_level + 1, B_HF if molecule == "HF" else B_CSO)
+            diff = energy_difference(rotational_energy_value, next_rotational_energy)
+            selection_rule = "Δv = ±1"
+            table.append([v_level, r_level, "{:.3e}".format(total_energy), "{:.3e}".format(diff), selection_rule])
+
+    print(f"\nVibrational and Rotational energy levels for {molecule}:")
+    print(tabulate(table, headers=["Vibrational", "Rotational", "Energy (Joules)", "Energy Difference", "Selection Rule"], tablefmt="grid"))
+
+# Simulate rotational energy levels for the first 10 levels
+simulate_rotational("HF", 10)
+simulate_rotational("CSO", 10)
+
+# Simulate vibrational and rotational energy levels for the first three vibrational levels
+simulate_vibrational("HF", 3, 10)
+simulate_vibrational("CSO", 3, 10)
